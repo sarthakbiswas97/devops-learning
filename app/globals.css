@@ -4,3 +4,42 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/* Page transition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main > * {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Wider code blocks: break out slightly on large screens */
+@media (min-width: 1024px) {
+  article .group\/code {
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+}
+
+/* rehype-pretty-code: ensure background from theme is used */
+article pre {
+  background-color: var(--shiki-bg, #22272e) !important;
+}
+
+article pre > code {
+  display: grid;
+  background: transparent !important;
+}
+
+/* Code block line styles */
+article pre code [data-line] {
+  padding: 0 1rem;
+}

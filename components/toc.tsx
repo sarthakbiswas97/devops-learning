@@ -18,7 +18,7 @@ export function TableOfContents() {
     );
     const items = els.map((el) => ({
       id: el.id,
-      text: el.textContent || "",
+      text: el.textContent?.replace(/#$/, "").trim() || "",
       level: el.tagName === "H2" ? 2 : 3,
     }));
     setHeadings(items);
@@ -41,28 +41,30 @@ export function TableOfContents() {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="hidden xl:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto w-56 shrink-0">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
-        On this page
-      </p>
-      <ul className="space-y-1.5 text-sm border-l border-zinc-800">
-        {headings.map((h) => (
-          <li key={h.id}>
-            <a
-              href={`#${h.id}`}
-              className={`block py-0.5 transition-colors ${
-                h.level === 3 ? "pl-6" : "pl-3"
-              } ${
-                activeId === h.id
-                  ? "text-zinc-100 border-l-2 border-zinc-100 -ml-px"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              {h.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <nav className="hidden xl:block fixed top-14 right-0 bottom-0 w-56 border-l border-zinc-800 bg-zinc-950 overflow-y-auto">
+      <div className="p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          On this page
+        </p>
+        <ul className="space-y-1.5 text-sm border-l border-zinc-800">
+          {headings.map((h) => (
+            <li key={h.id}>
+              <a
+                href={`#${h.id}`}
+                className={`block py-0.5 transition-colors ${
+                  h.level === 3 ? "pl-6" : "pl-3"
+                } ${
+                  activeId === h.id
+                    ? "text-zinc-100 border-l-2 border-zinc-100 -ml-px"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 }
