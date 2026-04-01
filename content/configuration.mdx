@@ -1,0 +1,40 @@
+---
+title: Configuration
+description: How to configure the documentation site.
+order: 2
+---
+
+# Configuration
+
+This site uses a minimal setup with Next.js, Tailwind CSS, and MDX.
+
+## Project Structure
+
+```
+content/          # Your markdown/MDX files
+components/       # React components
+lib/              # Utility functions
+app/              # Next.js app router pages
+```
+
+## Adding Pages
+
+Create a new `.mdx` file in the `content/` directory:
+
+```bash
+touch content/my-new-page.mdx
+```
+
+Add frontmatter at the top of the file, then write your content below it.
+
+## Frontmatter Options
+
+| Field         | Type     | Description                        |
+| ------------- | -------- | ---------------------------------- |
+| `title`       | `string` | Page title (used in sidebar & tab) |
+| `description` | `string` | Short description for meta tags    |
+| `order`       | `number` | Sort order in sidebar navigation   |
+
+## Using Components in MDX
+
+Since this is MDX, you can import and use React components directly in your markdown files.
