@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useChatOpen } from "./chat-provider";
 
 interface Heading {
   id: string;
@@ -11,6 +12,7 @@ interface Heading {
 export function TableOfContents() {
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [activeId, setActiveId] = useState<string>("");
+  const { open: chatOpen } = useChatOpen();
 
   useEffect(() => {
     const els = Array.from(
@@ -38,10 +40,10 @@ export function TableOfContents() {
     return () => observer.disconnect();
   }, []);
 
-  if (headings.length === 0) return null;
+  if (headings.length === 0 || chatOpen) return null;
 
   return (
-    <nav className="hidden xl:block fixed top-14 right-0 bottom-0 w-56 border-l border-zinc-800 bg-zinc-950 overflow-y-auto">
+    <nav className="hidden xl:block fixed top-14 right-0 bottom-0 w-56 border-l border-zinc-800 bg-zinc-950">
       <div className="p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
           On this page
