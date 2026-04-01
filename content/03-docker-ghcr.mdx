@@ -1,0 +1,45 @@
+---
+title: Docker & GHCR on VPS
+description: Install Docker, authenticate with GitHub Container Registry, pull your image.
+order: 3
+---
+
+# Docker & GHCR on VPS
+
+Install Docker, authenticate with GitHub Container Registry, pull your image.
+
+## Install Docker
+
+```bash
+curl -fsSL https://get.docker.com | sh
+```
+
+If not running as root, add your user to the docker group:
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+Verify:
+
+```bash
+docker --version
+```
+
+## Authenticate with GHCR
+
+You need a GitHub **Personal Access Token (classic)** with `read:packages` scope.
+
+Create one at: **GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)**
+
+```bash
+docker login ghcr.io -u GITHUB_USERNAME
+# paste your PAT when prompted for password
+```
+
+## Pull the image
+
+```bash
+docker pull GHCR_IMAGE
+```

@@ -8,10 +8,10 @@ export default function Home() {
     <div className="flex flex-1 items-center justify-center px-6">
       <div className="max-w-xl w-full py-24">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
-          Documentation
+          VPS Deploy Guide
         </h1>
         <p className="text-zinc-500 mb-10">
-          Select a page to get started.
+          Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and auto-deploy.
         </p>
         <div className="space-y-2">
           {docs.map((doc) => (

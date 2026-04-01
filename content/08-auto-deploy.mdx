@@ -1,0 +1,88 @@
+---
+title: Auto-Deploy via SSH
+description: GitHub Actions automatically SSHs into your VPS and runs the redeploy script after a successful image push.
+order: 8
+---
+
+# Auto-Deploy via SSH
+
+GitHub Actions automatically SSHs into your VPS and runs the redeploy script after a successful image push. Uses `appleboy/ssh-action` with SSH key auth — no PEM files needed.
+
+## 1. Generate SSH keypair on VPS
+
+This key lets GitHub Actions log into your VPS:
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy -N ""
+```
+
+## 2. Authorize the public key
+
+```bash
+cat ~/.ssh/github_actions_deploy.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+## 3. Copy the private key
+
+```bash
+cat ~/.ssh/github_actions_deploy
+```
+
+Save this output — you'll paste it into a GitHub secret.
+
+## 4. Add GitHub repository secrets
+
+Go to **Repo → Settings → Secrets and variables → Actions → New repository secret** and add:
+
+| Secret | Value |
+|---|---|
+| `VPS_HOST` | Your VPS **public** IP or hostname |
+| `VPS_USER` | SSH username (e.g., `ubuntu`, `root`) |
+| `VPS_SSH_KEY` | The full private key from step 3 (include `-----BEGIN/END-----` lines) |
+
+## 5. Add deploy job to workflow
+
+Add this job after your `build-and-push` job in `.github/workflows/docker-publish.yml`:
+
+```yaml
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            bash ~/apps/myapp/redeploy.sh
+```
+
+`script_stop: true` ensures the job fails if any command in the redeploy script fails. The script's stdout streams into the Actions log, giving you full feedback (pull status, health check, container status).
+
+## GHCR auth on VPS
+
+The redeploy script runs `docker pull` from GHCR, so the VPS needs to be authenticated:
+
+```bash
+echo "YOUR_GITHUB_PAT" | docker login ghcr.io -u GITHUB_USERNAME --password-stdin
+```
+
+Create a PAT at: **GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)** with `read:packages` scope.
+
+## Deploy Keys vs SSH Keys
+
+| | SSH Key (this guide) | Deploy Key |
+|---|---|---|
+| **Purpose** | Let GitHub Actions SSH *into* your VPS | Let your VPS *clone/pull* from a GitHub repo |
+| **Where generated** | On the VPS | On the VPS |
+| **Public key goes to** | VPS `~/.ssh/authorized_keys` | GitHub repo → Settings → Deploy Keys |
+| **Private key goes to** | GitHub secret (`VPS_SSH_KEY`) | VPS SSH config |
+| **When needed** | Always (for auto-deploy) | Only if redeploy script does `git pull` |
+
+You only need Deploy Keys if your redeploy script does a `git pull` from the repo on the VPS. If it just does `docker pull` (recommended), you only need the SSH key setup described above.

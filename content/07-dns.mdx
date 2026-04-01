@@ -1,0 +1,30 @@
+---
+title: DNS Setup
+description: Point your domain to the VPS.
+order: 7
+---
+
+# DNS Setup
+
+Point your domain to the VPS.
+
+## Cloudflare
+
+1. Go to **dash.cloudflare.com → your domain → DNS → Records**
+2. Add an **A record**:
+   - **Name**: `@` (root) or `api` (subdomain) or `api.trader` (nested subdomain)
+   - **IPv4**: `VPS_IP`
+   - **Proxy**: Grey cloud (DNS only) — **important for Certbot to work**
+   - **TTL**: Auto
+3. After SSL is set up, you can optionally switch to orange cloud (Cloudflare proxy)
+
+## Other DNS providers (Namecheap, GoDaddy, etc.)
+
+Add an A record pointing your domain/subdomain to `VPS_IP`. TTL: automatic or 300.
+
+## Verify DNS
+
+```bash
+dig +short DOMAIN
+# should return VPS_IP
+```

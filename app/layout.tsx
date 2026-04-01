@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Docs",
-  description: "Documentation site",
+  title: "VPS Deploy Guide",
+  description: "Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and GitHub Actions auto-deploy.",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
         <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 h-14 flex items-center">
             <Link href="/" className="text-sm font-semibold tracking-tight text-zinc-100">
-              Docs
+              VPS Deploy Guide
             </Link>
           </div>
         </header>

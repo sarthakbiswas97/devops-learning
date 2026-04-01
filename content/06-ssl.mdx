@@ -1,0 +1,49 @@
+---
+title: SSL with Certbot
+description: HTTPS certificates with automatic renewal.
+order: 6
+---
+
+# SSL with Certbot
+
+HTTPS certificates with automatic renewal.
+
+## Install Certbot
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+## Obtain certificate
+
+**Single domain:**
+
+```bash
+sudo certbot --nginx -d DOMAIN
+```
+
+**Multiple domains/subdomains:**
+
+```bash
+sudo certbot --nginx -d api.example.com -d app.example.com
+```
+
+Follow the prompts (email, agree to ToS).
+
+Certbot automatically:
+- Obtains the certificate
+- Configures Nginx for SSL
+- Sets up HTTP → HTTPS redirect
+- Configures auto-renewal via systemd timer
+
+## Validate
+
+```bash
+curl https://DOMAIN/
+```
+
+## Verify auto-renewal
+
+```bash
+sudo certbot renew --dry-run
+```

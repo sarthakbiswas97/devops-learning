@@ -1,0 +1,63 @@
+---
+title: Overview
+description: Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and GitHub Actions auto-deploy.
+order: 0
+---
+
+# VPS Deployment Guide
+
+> Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and GitHub Actions auto-deploy.
+
+## Variables
+
+Fill these in for each project:
+
+| Variable | Example |
+|----------|---------|
+| `VPS_IP` | `13.205.41.6` |
+| `DOMAIN` | `api.myapp.example.com` |
+| `GHCR_IMAGE` | `ghcr.io/username/repo:latest` |
+| `APP_PORT` | `8000` |
+| `GITHUB_USERNAME` | `sarthakbiswas97` |
+| `CONTAINER_NAME` | `myapp` |
+| `VPS_USER` | `root` or `ubuntu` |
+
+## Steps (in order)
+
+| # | Guide | What it covers |
+|---|-------|---------------|
+| 1 | [CI/CD — GitHub Actions to GHCR](/docs/01-cicd-ghcr) | Build & push Docker images on every push |
+| 2 | [VPS Base Setup](/docs/02-vps-setup) | SSH access, system updates, firewall |
+| 3 | [Docker & GHCR on VPS](/docs/03-docker-ghcr) | Install Docker, authenticate with GHCR, pull image |
+| 4 | [Run Containers](/docs/04-run-containers) | Env file, single container, Docker Compose |
+| 5 | [Nginx Reverse Proxy](/docs/05-nginx) | Install, configure, enable reverse proxy |
+| 6 | [SSL with Certbot](/docs/06-ssl) | HTTPS certificates, auto-renewal |
+| 7 | [DNS Setup](/docs/07-dns) | Cloudflare, other providers, verification |
+| 8 | [Auto-Deploy via SSH](/docs/08-auto-deploy) | GitHub Actions SSH into VPS, redeploy on push |
+| 9 | [Operations & Maintenance](/docs/09-operations) | Redeploy, rollback, logs, env updates, cleanup |
+
+## Checklist
+
+```
+## Deployment: [PROJECT NAME]
+- [ ] CI/CD workflow pushing to GHCR
+- [ ] SSH into VPS, note IP
+- [ ] System packages updated
+- [ ] Firewall configured (or AWS SG)
+- [ ] Docker installed
+- [ ] GHCR authenticated
+- [ ] Image pulled
+- [ ] .env file created
+- [ ] Container running
+- [ ] Validate: curl http://localhost:APP_PORT/
+- [ ] Nginx installed and configured
+- [ ] Validate: curl http://VPS_IP/
+- [ ] DNS A record added (DNS only mode)
+- [ ] Validate: dig +short DOMAIN
+- [ ] Certbot SSL obtained
+- [ ] Validate: curl https://DOMAIN/
+- [ ] Auto-restart verified (reboot test)
+- [ ] (Optional) Auto-deploy: SSH key setup + GitHub secrets
+- [ ] (Optional) Auto-deploy: deploy job in workflow
+- [ ] (Optional) Cloudflare proxy mode
+```

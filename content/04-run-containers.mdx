@@ -1,0 +1,105 @@
+---
+title: Run Containers
+description: Create env file and start your container(s).
+order: 4
+---
+
+# Run Containers
+
+Create env file and start your container(s).
+
+## Create environment file
+
+```bash
+nano ~/app.env
+```
+
+Example:
+
+```env
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+REDIS_URL=redis://localhost:6379/0
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+DEBUG=false
+SECRET_KEY=your-secret-key
+```
+
+## Option A: Single Container
+
+```bash
+docker run -d \
+  --name CONTAINER_NAME \
+  -p APP_PORT:APP_PORT \
+  --env-file ~/app.env \
+  --restart unless-stopped \
+  GHCR_IMAGE
+```
+
+Verify:
+
+```bash
+docker ps
+curl http://localhost:APP_PORT/
+```
+
+## Option B: Docker Compose (Multi-Container)
+
+Create the compose file:
+
+```bash
+mkdir -p ~/app && nano ~/app/docker-compose.yml
+```
+
+Example:
+
+```yaml
+services:
+  backend:
+    image: ghcr.io/username/repo/backend:latest
+    ports:
+      - "8000:8000"
+    env_file:
+      - ~/app.env
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  frontend:
+    image: ghcr.io/username/repo/frontend:latest
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  pg_data:
+```
+
+Run:
+
+```bash
+cd ~/app
+docker compose up -d
+docker compose ps
+```

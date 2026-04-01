@@ -1,0 +1,171 @@
+---
+title: Operations & Maintenance
+description: Day-to-day commands for managing your deployment.
+order: 9
+---
+
+# Operations & Maintenance
+
+Day-to-day commands for managing your deployment.
+
+## Verify auto-restart
+
+Docker's `--restart unless-stopped` handles container restarts. Ensure Docker itself starts on boot:
+
+```bash
+sudo systemctl enable docker
+```
+
+### Reboot test
+
+```bash
+sudo reboot
+# wait 30 seconds, then SSH back in
+docker ps                    # containers should be running
+curl https://DOMAIN/         # app should respond
+```
+
+## Redeploy (manual)
+
+### Single container
+
+```bash
+docker pull GHCR_IMAGE
+docker stop CONTAINER_NAME && docker rm CONTAINER_NAME
+docker run -d \
+  --name CONTAINER_NAME \
+  -p APP_PORT:APP_PORT \
+  --env-file ~/app.env \
+  --restart unless-stopped \
+  GHCR_IMAGE
+```
+
+### Docker Compose
+
+```bash
+cd ~/app
+docker compose pull
+docker compose up -d
+```
+
+## Redeploy script
+
+Create `~/redeploy.sh` on your VPS for one-command redeployments:
+
+```bash
+#!/bin/bash
+set -e
+
+# ---- Configure these per project ----
+IMAGE="ghcr.io/username/repo:latest"
+CONTAINER="myapp"
+ENV_FILE="$HOME/app.env"
+PORT="8000"
+HEALTH_ENDPOINT="/health"
+# --------------------------------------
+
+echo "=== Pulling latest image ==="
+docker pull "$IMAGE"
+
+echo "=== Stopping and removing old container ==="
+docker stop "$CONTAINER" 2>/dev/null || true
+docker rm "$CONTAINER" 2>/dev/null || true
+
+echo "=== Starting new container ==="
+docker run -d \
+  --name "$CONTAINER" \
+  -p "$PORT:$PORT" \
+  --env-file "$ENV_FILE" \
+  --restart unless-stopped \
+  "$IMAGE"
+
+echo "=== Waiting for app to start ==="
+sleep 3
+
+echo "=== Health check ==="
+curl -sf http://localhost:$PORT$HEALTH_ENDPOINT && echo "" || echo "WARNING: Health check failed"
+
+echo "=== Cleaning up old images ==="
+docker image prune -af
+
+echo "=== Done ==="
+docker ps --filter "name=$CONTAINER"
+```
+
+Make it executable:
+
+```bash
+chmod +x ~/redeploy.sh
+```
+
+### Docker Compose version
+
+```bash
+#!/bin/bash
+set -e
+cd ~/app
+docker compose pull
+docker compose up -d
+docker image prune -f
+docker compose ps
+```
+
+## Rollback to a specific SHA
+
+Images are tagged with `sha-` prefix by the CI workflow:
+
+```bash
+docker pull ghcr.io/username/repo:sha-abc1234
+docker stop CONTAINER_NAME && docker rm CONTAINER_NAME
+docker run -d \
+  --name CONTAINER_NAME \
+  -p APP_PORT:APP_PORT \
+  --env-file ~/app.env \
+  --restart unless-stopped \
+  ghcr.io/username/repo:sha-abc1234
+```
+
+## Update env vars
+
+```bash
+nano ~/app.env
+# edit values, save
+
+# Restart to pick up changes
+docker restart CONTAINER_NAME
+
+# Or for compose
+cd ~/app && docker compose restart
+```
+
+## View logs
+
+```bash
+# Single container
+docker logs CONTAINER_NAME
+docker logs -f CONTAINER_NAME       # follow/tail
+
+# Docker Compose
+cd ~/app
+docker compose logs
+docker compose logs -f backend      # follow specific service
+```
+
+## Nginx logs
+
+```bash
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+## Clean up old images
+
+```bash
+docker image prune -a
+```
+
+## Renew SSL manually (usually not needed)
+
+```bash
+sudo certbot renew
+```

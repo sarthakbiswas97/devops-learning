@@ -1,0 +1,142 @@
+---
+title: CI/CD — GitHub Actions to GHCR
+description: Build and push Docker images to GitHub Container Registry on every push to main.
+order: 1
+---
+
+# CI/CD — GitHub Actions to GHCR
+
+Build and push Docker images to GitHub Container Registry on every push to `main`.
+
+## Single Container Workflow
+
+Create `.github/workflows/docker-publish.yml`:
+
+```yaml
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+## Multi-Container Workflow (Docker Compose projects)
+
+If you have multiple services, build and push each image separately using a matrix:
+
+```yaml
+name: Build and Push All Services
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service:
+          - { name: "backend", context: "./backend", file: "./backend/Dockerfile" }
+          - { name: "frontend", context: "./frontend", file: "./frontend/Dockerfile" }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.file }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service.name }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service.name }}:sha-${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,scope=${{ matrix.service.name }},mode=max
+```
+
+## Path Filtering (Optional)
+
+Only trigger builds when specific folders change:
+
+```yaml
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'    # only trigger on backend changes
+  workflow_dispatch:     # manual trigger always works
+```
+
+## Private Repos
+
+GHCR images from private repos are private by default. No extra workflow config needed — `GITHUB_TOKEN` handles auth. You'll need a PAT with `read:packages` scope to pull from your VPS (covered in [Step 3](/docs/03-docker-ghcr)).
+
+To make a package public: GitHub → Repo → Packages → Package Settings → Change visibility.

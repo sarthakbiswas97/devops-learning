@@ -1,0 +1,45 @@
+---
+title: VPS Base Setup
+description: SSH in, update packages, configure firewall.
+order: 2
+---
+
+# VPS Base Setup
+
+SSH in, update packages, configure firewall.
+
+## SSH into VPS
+
+```bash
+ssh root@VPS_IP
+# or for AWS
+ssh ubuntu@VPS_IP -i ~/.ssh/your-key.pem
+
+# confirm your public IP
+curl ifconfig.me
+```
+
+## Update system packages
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+## Firewall
+
+### Non-AWS (DigitalOcean, Hetzner, Linode, etc.)
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status
+```
+
+### AWS
+
+Skip `ufw`. Instead, ensure your **Security Group** allows inbound on ports:
+- **22** (SSH)
+- **80** (HTTP)
+- **443** (HTTPS)
