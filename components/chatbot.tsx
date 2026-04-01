@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { TextStreamChatTransport } from "ai";
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 const transport = new TextStreamChatTransport({ api: "/api/chat" });
 
@@ -33,6 +34,12 @@ export function Chatbot() {
     sendMessage({ text: input });
     setInput("");
   };
+
+  const getText = (msg: (typeof messages)[number]) =>
+    msg.parts
+      .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text")
+      .map((p) => p.text)
+      .join("");
 
   return (
     <>
@@ -86,11 +93,60 @@ export function Chatbot() {
                       : "bg-zinc-800/80 text-zinc-300"
                   }`}
                 >
-                  <div className="whitespace-pre-wrap break-words">
-                    {msg.parts
-                      .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text")
-                      .map((p, i) => <span key={i}>{p.text}</span>)}
-                  </div>
+                  {msg.role === "user" ? (
+                    <div className="whitespace-pre-wrap break-words">
+                      {getText(msg)}
+                    </div>
+                  ) : (
+                    <div className="chat-markdown break-words">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          code: ({ children, className }) => {
+                            const isBlock = className?.includes("language-");
+                            if (isBlock) {
+                              return <code className={className}>{children}</code>;
+                            }
+                            return (
+                              <code className="bg-zinc-700/50 px-1 py-0.5 rounded text-xs font-mono text-zinc-200">
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre: ({ children }) => (
+                            <pre className="bg-zinc-900 border border-zinc-700 rounded-md p-2 overflow-x-auto my-2 text-xs">
+                              {children}
+                            </pre>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>
+                          ),
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          a: ({ href, children }) => (
+                            <a href={href} className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
+                              {children}
+                            </a>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-zinc-100">{children}</strong>
+                          ),
+                          h1: ({ children }) => <p className="font-semibold text-zinc-100 mb-1">{children}</p>,
+                          h2: ({ children }) => <p className="font-semibold text-zinc-100 mb-1">{children}</p>,
+                          h3: ({ children }) => <p className="font-semibold text-zinc-200 mb-1">{children}</p>,
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-2 border-zinc-600 pl-2 text-zinc-400 my-2">
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
+                        {getText(msg)}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
