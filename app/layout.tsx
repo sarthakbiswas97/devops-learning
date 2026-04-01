@@ -5,6 +5,7 @@ import { getAllDocs } from "@/lib/mdx";
 import { MobileNav } from "@/components/mobile-nav";
 import { Search } from "@/components/search";
 import { getSearchData } from "@/lib/search-data";
+import { Chatbot } from "@/components/chatbot";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,6 +54,7 @@ export default function RootLayout({
         <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">
           Built with Next.js &middot; VPS Deploy Guide
         </footer>
+        <Chatbot />
       </body>
     </html>
   );
