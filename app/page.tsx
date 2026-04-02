@@ -1,19 +1,24 @@
 import Link from "next/link";
 import { getAllDocs } from "@/lib/mdx";
+import { DeploymentMindmap } from "@/components/deployment-mindmap";
 
 export default function Home() {
   const docs = getAllDocs();
 
   return (
     <div className="flex flex-1 items-center justify-center px-6">
-      <div className="max-w-xl w-full py-24">
+      <div className="max-w-4xl w-full py-16">
         <h1 className="text-3xl font-bold tracking-tight text-zinc-100 mb-2">
           VPS Deploy Guide
         </h1>
-        <p className="text-zinc-500 mb-10">
-          Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and auto-deploy.
+        <p className="text-zinc-500 mb-8">
+          Deploy any Dockerized project to a VPS with GHCR, Nginx, SSL, and
+          auto-deploy. Click any node to jump to its guide.
         </p>
-        <div className="space-y-2">
+
+        <DeploymentMindmap />
+
+        <div className="mt-10 space-y-2">
           {docs.map((doc) => (
             <Link
               key={doc.slug}
